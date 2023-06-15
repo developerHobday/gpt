@@ -1,0 +1,12 @@
+prompts:
+  - Give me 3 affirmations
+  - For a sunny day
+  - In a motivational tone
+# Recommend 60s (60000), at least 15000
+waitResponseMilliseconds: 10000
+env: development
+typeDelay: 300
+login:
+  type: windows
+  user: 
+  password: 

@@ -1,0 +1,30 @@
+{
+    "name": "crawlee-crawler",
+    "version": "0.0.1",
+    "type": "module",
+    "description": "This is an example of a Crawlee project.",
+    "dependencies": {
+        "@google-cloud/local-auth": "^2.1.0",
+        "crawlee": "^3.0.0",
+        "googleapis": "^105.0.0",
+        "js-yaml": "^4.1.0",
+        "playwright": "*",
+        "winston": "^3.9.0"
+    },
+    "devDependencies": {
+        "@apify/tsconfig": "^0.1.0",
+        "@types/js-yaml": "^4.0.5",
+        "@types/node": "^18.0.0",
+        "ts-node": "^10.8.0",
+        "typescript": "^5.0.0"
+    },
+    "scripts": {
+        "start": "npm run start:dev",
+        "start:prod": "node dist/main.js",
+        "start:dev": "ts-node-esm -T src/main.ts",
+        "build": "tsc",
+        "test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+    },
+    "author": "It's not you it's me",
+    "license": "ISC"
+}
