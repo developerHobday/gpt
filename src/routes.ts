@@ -2,8 +2,7 @@ import { Dataset, Log, createPlaywrightRouter } from 'crawlee';
 import { Page } from 'playwright';
 import { logger } from './logger.js'
 import { config } from './config.js'
-import { readNextPrompt, updatePrompt } from './google.js'
-import { logging } from 'googleapis/build/src/apis/logging/index.js';
+import { PromptObj, readNextPrompt, updatePrompt } from './google.js'
 
 export const router = createPlaywrightRouter();
 
@@ -72,24 +71,61 @@ const handleFirstTimeIfNecessary = async (page: Page) => {
     await page.click('button.ml-auto') // Done
 }
 
-const getNumWords = (str: string) => {
+const getNumWordsInPrompt = (promptObj: PromptObj) => {
+    let numWords = 0
+    if (promptObj.start) {
+        const startParts = promptObj.start.split(' ')
+        numWords += startParts.length
+    }
+    if (promptObj.middle) {
+        const midParts = promptObj.middle.split(' ')
+        numWords += midParts.length
+    }
+    if (promptObj.end) {
+        const endParts = promptObj.end.split(' ')
+        numWords += endParts.length
+    }
+    return numWords
+}
+
+const getNumWords = (str: string): number => {
     const parts = str.split(' ')
     return parts.length
 }
 
-const promptChat = async (page: Page, prompt: string, log: Log): Promise<string> => {
-    const inputField = page.getByPlaceholder('Send a message.')
-    await inputField.type(prompt, {delay: config.typeDelay})
+const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => {
+    // await page.waitForTimeout(2000)
+    const inputField = page.getByPlaceholder('Send a message')
+    // await inputField.type(prompt, {delay: config.typeDelay})
+    if (promptObj.start) {
+        await inputField.type( promptObj.start, {
+            delay: config.typeDelay,
+            timeout: config.promptMaxLength * config.typeDelay,
+        })
+    }
+    if (promptObj.middle) {
+        await inputField.press('Shift+Enter')
+        await inputField.type( promptObj.middle, {
+            delay: config.typeDelay,
+            timeout: config.promptMaxLength * config.typeDelay,
+        })
+
+    }
+    if (promptObj.end) {
+        await inputField.press('Shift+Enter')
+        await inputField.type(promptObj.end, {
+            delay: config.typeDelay,
+            timeout: config.promptMaxLength * config.typeDelay,
+        })
+    }
     await inputField.press('Enter')
+    
 
     // await page.waitForTimeout(config.waitResponseMilliseconds) // Wait for chat to reply
     await page.waitForTimeout(config.responseWaitDelay);
 
     // <div class="markdown prose w-full break-words dark:prose-invert light">
     const lastResponse = page.locator('div.group.w-full div.markdown.prose').last()
-
-    // const html = await lastResponse.evaluate(el => el.outerHTML)
-    // logger.debug(`html ${html}`)
 
     let finished = false
     while (!finished) {
@@ -119,28 +155,29 @@ router.addDefaultHandler(async ({ enqueueLinks, page, log }) => {
 
     let numInputWords = 0
     let numOutputWords = 0
-    const prompts = config.prompts
 
-    let finished = false
-    while(!finished) {
+    // let finished = false
+    while(true) {
     // for (const prompt of prompts) {
         const promptObj = await readNextPrompt()
         if (promptObj == false) {
             logger.info('No outstanding prompt found in google sheets')
             const oneHour = 1000*60*60
-            finished = true
+            // finished = true
             break
         }
+        logger.debug(JSON.stringify(promptObj))
         const statusRange = `B${promptObj.row}`
         await updatePrompt(statusRange, 'In Progress')
+        // TODO option to get output from previous
 
-        const prompt = promptObj.start + promptObj.end
-        numInputWords += getNumWords(prompt)
+        // const prompt = `${promptObj.start} ${config.middlePrompt} ${promptObj.end}`
+        numInputWords += getNumWordsInPrompt(promptObj)
         logger.debug(`number of words input: ${numInputWords}`)
         
-        const output = await promptChat(page, prompt, log)
-        await updatePrompt(`E${promptObj.row}`, output)
-        numOutputWords += getNumWords(output)
+        promptObj.output = await promptChat(page, promptObj)
+        await updatePrompt(`E${promptObj.row}`, promptObj.output)
+        numOutputWords += getNumWords(promptObj.output)
         logger.debug(`number of words output: ${numOutputWords}`)
 
         

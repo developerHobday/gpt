@@ -3,7 +3,8 @@ import * as yaml from 'js-yaml'
 
 
 interface Config {
-    prompts: Array<string>
+    middlePrompt: string
+    promptMaxLength: number
     waitResponseMilliseconds: number
     env: string
     login: {
@@ -17,7 +18,8 @@ interface Config {
 }
 
 let config:Config = {
-    prompts: ['hello'],
+    promptMaxLength: 10000,
+    middlePrompt: '',
     waitResponseMilliseconds: 60*1000,
     env: 'development',
     login: {

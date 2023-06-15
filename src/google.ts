@@ -134,6 +134,15 @@ export const updatePrompt = async (range:string, value:string ) => {
   }
 }
 
+export interface PromptObj {
+  row: number
+  start: string
+  middle: string
+  end: string
+  rowNum: string
+  output: string
+}
+
 export const readNextPrompt = async () => {
   try {
 
@@ -143,17 +152,25 @@ export const readNextPrompt = async () => {
     let i = 1
     for (const row of rows) {
       i += 1
-      console.log(i, row)
+      // console.log(i, row)
       const status = row[1] as string
       if (status.toUpperCase() == 'DONE') {
         continue
       }
-      const prompt = {
-        'row' : i,
-        'rowNum': row[0],
-        'start': row[2],
-        'end': row[3],
+      const prompt: PromptObj = {
+        row : i,
+        rowNum: row[0],
+        start: row[2],
+        middle: config.middlePrompt,
+        end: row[3],
+        output: undefined
       }
+      // if (!prompt.start) {
+      //   prompt.start = ''
+      // }
+      // if (!prompt.end) {
+      //   prompt.end = ''
+      // }
       // console.log(output)
       return prompt
     }
