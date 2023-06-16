@@ -2,6 +2,11 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 
+interface GoogleSheetColumnObj {
+    number: number
+    letter: string
+    header: string    
+}
 interface Config {
     middlePrompt: string
     promptMaxLength: number
@@ -14,7 +19,20 @@ interface Config {
     }
     typeDelay: number
     responseWaitDelay: number
-    googleSheetId: string
+
+    googleSheets: {
+        workbookId: string
+        sheetName: string
+        columns: {
+            first: string,
+            last: string,
+            rowNum: GoogleSheetColumnObj
+            status: GoogleSheetColumnObj
+            startPrompt: GoogleSheetColumnObj
+            endPrompt: GoogleSheetColumnObj
+            output: GoogleSheetColumnObj                                    
+        }
+    }
 }
 
 let config:Config = {
@@ -29,7 +47,39 @@ let config:Config = {
     },
     typeDelay: 500,
     responseWaitDelay: 2000,
-    googleSheetId: ''
+    googleSheets: {
+        workbookId: '',
+        sheetName: 'Sheet1',
+        columns: {
+            first: 'A',
+            last: 'E',
+            rowNum: {
+                number: 0,
+                letter: 'A',
+                header: 'No',
+            },
+            status: {
+                number: 1,
+                letter: 'B',
+                header: 'Status',
+            },            
+            startPrompt: {
+                number: 2,
+                letter: 'C',
+                header: 'Start Prompt',
+            },
+            endPrompt: {
+                number: 3,
+                letter: 'D',         
+                header: 'End Prompt',
+            },
+            output: {
+                number: 4,
+                letter: 'E',
+                header: 'Output',
+            }, 
+        }
+    }
 }
 try {
     // TODO async?

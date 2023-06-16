@@ -5,16 +5,10 @@ import * as process from 'process'
 import { authenticate } from '@google-cloud/local-auth'
 import { google } from 'googleapis'
 import { config } from './config.js'
-import { JSONClient } from 'google-auth-library/build/src/auth/googleauth.js'
 import { OAuth2Client } from 'google-auth-library';
+import { logger } from './logger.js'
 
-
-// If modifying these scopes, delete token.json.
-// const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
@@ -97,13 +91,13 @@ async function listMajors(auth: OAuth2Client) {
 
 async function readAutomationSheet(auth: OAuth2Client): Promise<string[][]> {
   const sheetsApi = google.sheets({version: 'v4', auth});
+  const columnRange = `${config.googleSheets.columns.first}1:${config.googleSheets.columns.last}`
   const res = await sheetsApi.spreadsheets.values.get({
-    spreadsheetId: config.googleSheetId,
-    range: 'Sheet1!A2:E',
+    spreadsheetId: config.googleSheets.workbookId,
+    range: `${config.googleSheets.sheetName}!${columnRange}`,
   });
   const rows = res.data.values;
   if (!rows || rows.length === 0) {
-    console.log();
     throw Error('No data found in Google Sheet.')
   }
   return rows
@@ -116,7 +110,7 @@ export const updatePrompt = async (range:string, value:string ) => {
   try {
     const sheetsApi = google.sheets({version: 'v4', auth:authClient});
     const res = await sheetsApi.spreadsheets.values.update({
-        spreadsheetId: config.googleSheetId,
+        spreadsheetId: config.googleSheets.workbookId,
         range,
         valueInputOption: "RAW",
         requestBody: {
@@ -126,10 +120,10 @@ export const updatePrompt = async (range:string, value:string ) => {
       }
     )
     const response = res.data
-    console.log(JSON.stringify(response, null, 2))
+    logger.debug(JSON.stringify(response, null, 2))
 
   } catch(e) {
-    console.error(e)
+    logger.error(e)
     throw e
   }
 }
@@ -143,43 +137,70 @@ export interface PromptObj {
   output: string
 }
 
+const checkColumns = (row: string[]) => {
+  let check = true
+  if (row[config.googleSheets.columns.rowNum.number] !=
+    config.googleSheets.columns.rowNum.header) {
+      check = false
+      logger.warn(`Unexpected header found for rowNum: ${row[config.googleSheets.columns.rowNum.number]}`)
+  }
+  if (row[config.googleSheets.columns.status.number] !=
+    config.googleSheets.columns.status.header) {
+      check = false
+      logger.warn(`Unexpected header found for status: ${row[config.googleSheets.columns.status.number]}`)
+  }
+  if (row[config.googleSheets.columns.startPrompt.number] !=
+    config.googleSheets.columns.startPrompt.header) {
+      check = false
+      logger.warn(`Unexpected header found for startPrompt: ${row[config.googleSheets.columns.startPrompt.number]}`)
+  }
+  if (row[config.googleSheets.columns.endPrompt.number] !=
+    config.googleSheets.columns.endPrompt.header) {
+      check = false
+      logger.warn(`Unexpected header found for endPrompt: ${row[config.googleSheets.columns.endPrompt.number]}`)
+  }
+  if (row[config.googleSheets.columns.output.number] !=
+    config.googleSheets.columns.output.header) {
+      check = false
+      logger.warn(`Unexpected header found for output: ${row[config.googleSheets.columns.output.number]}`)
+  }  
+  if (!check) {
+    throw Error('Invalid Columns')
+  }
+}
+
 export const readNextPrompt = async () => {
   try {
-
     const rows = await readAutomationSheet(authClient)
-    //TODO check the columns
-
-    let i = 1
+    let i = 0
     for (const row of rows) {
       i += 1
       // console.log(i, row)
-      const status = row[1] as string
+      if (i == 1) {
+        checkColumns(row)
+        continue
+      }
+
+      const status = row[config.googleSheets.columns.status.number] as string
       if (status.toUpperCase() == 'DONE') {
         continue
       }
       const prompt: PromptObj = {
         row : i,
-        rowNum: row[0],
-        start: row[2],
+        rowNum: row[config.googleSheets.columns.rowNum.number],
+        start: row[config.googleSheets.columns.startPrompt.number],
         middle: config.middlePrompt,
-        end: row[3],
-        output: undefined
+        end: row[config.googleSheets.columns.endPrompt.number],
+        output: row[config.googleSheets.columns.output.number]
       }
-      // if (!prompt.start) {
-      //   prompt.start = ''
-      // }
-      // if (!prompt.end) {
-      //   prompt.end = ''
-      // }
       // console.log(output)
       return prompt
     }
     return false
   } catch(e) {
-    console.error(e)
+    logger.error(e)
     throw e
   }
 }
-// await read()
-// authorize().then(listMajors).catch(console.error);
+
 
