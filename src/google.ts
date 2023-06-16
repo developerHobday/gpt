@@ -182,7 +182,7 @@ export const readNextPrompt = async () => {
       }
 
       const status = row[config.googleSheets.columns.status.number] as string
-      if (status.toUpperCase() == 'DONE') {
+      if (status.toUpperCase().includes('DONE')) {
         continue
       }
       const prompt: PromptObj = {

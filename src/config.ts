@@ -82,10 +82,9 @@ let config:Config = {
     }
 }
 try {
-    // TODO async?
     const file = fs.readFileSync('./config.yaml', 'utf8')
     config = yaml.load(file) as Config
-    console.debug(`Config \n${JSON.stringify(config)}`)
+    // console.debug(`Config \n${JSON.stringify(config)}`)
 } catch(e) {
     console.warn(e)
 }

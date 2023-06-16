@@ -1,12 +1,8 @@
-// For more information, see https://crawlee.dev/
-import { PlaywrightCrawler, ProxyConfiguration } from 'crawlee';
+import { PlaywrightCrawler } from 'crawlee';
 import { router } from './routes.js';
-// import { read } from './google.js'
 import { exit } from 'process';
 
 const startUrls = [
-    // 'https://www.royalcaribbean.com/sgp'
-    // 'https://aws.amazon.com'
     'https://chat.openai.com',
 ];
 
@@ -16,7 +12,6 @@ const launchContext = {
 }
 
 const crawler = new PlaywrightCrawler({ 
-    // proxyConfiguration: new ProxyConfiguration({ proxyUrls: ['...'] }),
     requestHandler: router,
     headless: false,
     // keepAlive: true,

@@ -13,3 +13,12 @@ Needs 2GB ram
 TODO
 Installation instructions
 Usage instructions
+
+`npm start`
+
+To remove all browser data - e.g. cookies
+`rm -rf context`
+When ChatGPT doesn't log out
+
+If running in headful mode (browser showing),
+do not restore old tabs

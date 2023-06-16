@@ -17,12 +17,37 @@ const loginIfNecessary = async(page: Page) => {
         logger.debug('logged in already')
         return    
     }
-    logger.debug('start login')
+    logger.debug(`start login ${config.login.type}`)
     
 
     await loginButtonLocator.click() 
     switch(config.login.type) {
-        // TODO windows login
+        case 'gpt':
+            await page.waitForTimeout(2000)
+            const emailFieldLocatorGpt = page.locator('input#username')
+            logger.debug(await emailFieldLocatorGpt.count())    
+            if (await emailFieldLocatorGpt.count() != 0) {
+                await emailFieldLocatorGpt.type( 
+                    config.login.user, 
+                    {delay: config.typeDelay}
+                )        
+                await page.getByRole('button', {
+                    name : /Continue$/ 
+                },).click()
+                logger.debug('typed email')    
+            }
+            
+            const passwordFieldLocatorGpt = page.locator('input#password')
+            await passwordFieldLocatorGpt.click()
+            await passwordFieldLocatorGpt.type( 
+                config.login.password, 
+                {delay: 500}
+            )
+            await page.getByRole('button', { // 4 elements
+                name : /Continue$/ 
+            },).click()     
+            break;
+            // TODO test
         case 'windows':
             await page.click( 'button[data-provider="windowslive"]')
             await page.waitForTimeout(2000)
@@ -57,7 +82,6 @@ const loginIfNecessary = async(page: Page) => {
             throw new Error('not handled')
 
     }   
-    
     logger.debug('finish login')
 }
 
@@ -126,14 +150,28 @@ const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => 
     while (!finished) {
         await page.waitForTimeout(config.responseWaitDelay);
         const responseClass = await lastResponse.getAttribute('class')
-        // logger.debug(responseClass)
+        logger.silly(responseClass)
         if (responseClass) {
-            finished = !responseClass.includes('result-streaming')
+            if (!responseClass.includes('result-streaming')) {
+                
+                const continueGeneratingButton = page.locator(
+                    'button').filter({hasText: 'Continue generating'})
+                logger.silly(await continueGeneratingButton.count())
+                // await page.pause()
+                // #__next > div.overflow-hidden.w-full.h-full.relative.flex.z-0 > div.relative.flex.h-full.max-w-full.flex-1.overflow-hidden > div > main > div.absolute.bottom-0.left-0.w-full.border-t.md\:border-t-0.dark\:border-white\/20.md\:border-transparent.md\:dark\:border-transparent.md\:bg-vert-light-gradient.bg-white.dark\:bg-gray-800.md\:\!bg-transparent.dark\:md\:bg-vert-dark-gradient.pt-2.md\:-left-2 > form > div > div:nth-child(1) > div > button:nth-child(2)
+                if (await continueGeneratingButton.count() == 1) {
+                    await continueGeneratingButton.click()
+                    await page.waitForTimeout(config.responseWaitDelay);
+                } else {
+                    finished = true
+                }
+            }
+            // TODO continue generating
         }
     }
     // const html = await lastResponse.evaluate(el => el.outerHTML)
     const output = await lastResponse.textContent()
-    logger.debug(`response ${output}`)
+    logger.silly(`response ${output}`)
     if (output) {
         return output
     } else {
@@ -170,7 +208,7 @@ router.addDefaultHandler(async ({ enqueueLinks, page, log }) => {
         numOutputWords += getNumWords(promptObj.output)
         logger.debug(`number of words output: ${numOutputWords}`)
 
-        await updatePrompt(statusRange, 'Done')
+        await updatePrompt(statusRange, `Done at ${new Date().toISOString()}`)
         await page.waitForTimeout(2*1000)
     }
     logger.info('Crawl finished')
