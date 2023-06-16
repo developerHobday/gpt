@@ -9,15 +9,12 @@ export const router = createPlaywrightRouter();
 const loginIfNecessary = async(page: Page) => {
     await page.waitForTimeout(2000) // Wait for page to load fully
     const loginButtonLocator = page.getByRole('button', {name: 'Log in'})
-    // const chatGPTheaderLocator = page.locator('h1').filter(
-    //     {hasText: 'ChatGPT'}
-    // )
     logger.debug(await loginButtonLocator.count())
     if (await loginButtonLocator.count() == 0) {
-        logger.debug('logged in already')
+        logger.info('logged in to ChatGPT already')
         return    
     }
-    logger.debug(`start login ${config.login.type}`)
+    logger.info(`start login ${config.login.type}`)
     
 
     await loginButtonLocator.click() 
@@ -147,6 +144,7 @@ const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => 
     const lastResponse = page.locator('div.group.w-full div.markdown.prose').last()
 
     let finished = false
+    logger.debug('Waiting for prompt')
     while (!finished) {
         await page.waitForTimeout(config.responseWaitDelay);
         const responseClass = await lastResponse.getAttribute('class')
@@ -157,16 +155,15 @@ const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => 
                 const continueGeneratingButton = page.locator(
                     'button').filter({hasText: 'Continue generating'})
                 logger.silly(await continueGeneratingButton.count())
-                // await page.pause()
-                // #__next > div.overflow-hidden.w-full.h-full.relative.flex.z-0 > div.relative.flex.h-full.max-w-full.flex-1.overflow-hidden > div > main > div.absolute.bottom-0.left-0.w-full.border-t.md\:border-t-0.dark\:border-white\/20.md\:border-transparent.md\:dark\:border-transparent.md\:bg-vert-light-gradient.bg-white.dark\:bg-gray-800.md\:\!bg-transparent.dark\:md\:bg-vert-dark-gradient.pt-2.md\:-left-2 > form > div > div:nth-child(1) > div > button:nth-child(2)
                 if (await continueGeneratingButton.count() == 1) {
                     await continueGeneratingButton.click()
+                    logger.debug('Click continue generating')
                     await page.waitForTimeout(config.responseWaitDelay);
                 } else {
                     finished = true
                 }
             }
-            // TODO continue generating
+
         }
     }
     // const html = await lastResponse.evaluate(el => el.outerHTML)

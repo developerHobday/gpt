@@ -13,10 +13,16 @@ const launchContext = {
 
 const crawler = new PlaywrightCrawler({ 
     requestHandler: router,
+    autoscaledPoolOptions: {
+        autoscaleIntervalSecs: 20,
+        desiredConcurrency: 1,
+        maxConcurrency: 1,
+    },
     headless: false,
     // keepAlive: true,
-    requestHandlerTimeoutSecs: 600 * 10,
-    maxRequestRetries: 1,
+    requestHandlerTimeoutSecs: 60 * 30,
+    maxRequestRetries: 0,
+    navigationTimeoutSecs: 60,
     launchContext: launchContext,
     preNavigationHooks: [
         async (crawlingContext) => {
@@ -26,6 +32,5 @@ const crawler = new PlaywrightCrawler({
     ]
 });
 
-// await read()
 // exit(0)
 await crawler.run(startUrls);

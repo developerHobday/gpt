@@ -48,6 +48,13 @@ export const logger = winston.createLogger({
         new winston.transports.Console({
             stderrLevels: ['error'],
         }),
+        new winston.transports.File({ 
+            filename: '/var/log/gpt_automator/server.log', 
+            level: 'info',
+            handleExceptions: true,
+            maxsize: 5242880,
+            maxFiles: 10
+        }),
     ],
 });
 

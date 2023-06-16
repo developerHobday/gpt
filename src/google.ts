@@ -120,7 +120,7 @@ export const updatePrompt = async (range:string, value:string ) => {
       }
     )
     const response = res.data
-    logger.debug(JSON.stringify(response, null, 2))
+    logger.silly(`updatePrompt done ${JSON.stringify(response, null, 2)}`)
 
   } catch(e) {
     logger.error(e)
@@ -185,6 +185,7 @@ export const readNextPrompt = async () => {
       if (status.toUpperCase().includes('DONE')) {
         continue
       }
+      console.debug(`Next prompt is at row ${i}`)
       const prompt: PromptObj = {
         row : i,
         rowNum: row[config.googleSheets.columns.rowNum.number],

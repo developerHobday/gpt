@@ -1,12 +1,40 @@
-prompts:
-  - Give me 3 affirmations
-  - For a sunny day
-  - In a motivational tone
-# Recommend 60s (60000), at least 15000
-waitResponseMilliseconds: 10000
-env: development
-typeDelay: 300
+middlePrompt: Replace simple language with advanced English, avoid redundancy, and use niche-appropriate language.
+promptMaxLength : 10000 # characters
+
 login:
-  type: windows
-  user: 
-  password: 
+  type: gpt
+  user: test
+  password: test
+
+
+waitMinutesAfterVolumeExceeded: 60
+typeDelay: 100
+responseWaitDelay: 1000
+
+env: development
+googleSheets:
+  workbookId: 1AQK0bh-bXeOoR8uy13cu83zdnMR-QEDJaQRwhxJvaz4
+  sheetName: Sheet1
+  columns:
+    first: A
+    last: E
+    rowNum: 
+        number: 0
+        letter: 'A'
+        header: 'No'
+    status: 
+        number: 1
+        letter: 'B'
+        header: 'Status'         
+    startPrompt: 
+        number: 2
+        letter: 'C'
+        header: 'Start Prompt'
+    endPrompt: 
+        number: 3
+        letter: 'D'         
+        header: 'End Prompt'
+    output: 
+        number: 4
+        letter: 'E'
+        header: 'Output'
