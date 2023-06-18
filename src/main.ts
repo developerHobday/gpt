@@ -1,6 +1,7 @@
 import { PlaywrightCrawler } from 'crawlee';
 import { router } from './routes.js';
 import { exit } from 'process';
+import { config } from './config.js'
 
 const startUrls = [
     'https://chat.openai.com',
@@ -20,7 +21,7 @@ const crawler = new PlaywrightCrawler({
     },
     headless: false,
     // keepAlive: true,
-    requestHandlerTimeoutSecs: 60 * 30,
+    requestHandlerTimeoutSecs: config.maxRuntimeSeconds,
     maxRequestRetries: 0,
     navigationTimeoutSecs: 60,
     launchContext: launchContext,

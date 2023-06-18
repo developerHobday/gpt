@@ -11,14 +11,18 @@ interface Config {
     middlePrompt: string
     promptMaxLength: number
     waitResponseMilliseconds: number
+
     env: string
+
     login: {
         type: string
         user: string
         password: string
     }
+
     typeDelay: number
     responseWaitDelay: number
+    maxRuntimeSeconds: number
 
     googleSheets: {
         workbookId: string
@@ -47,6 +51,7 @@ let config:Config = {
     },
     typeDelay: 500,
     responseWaitDelay: 2000,
+    maxRuntimeSeconds: 60 * 20,
     googleSheets: {
         workbookId: '',
         sheetName: 'Sheet1',

@@ -14,10 +14,17 @@ Chrome browser
 
 ## Running
 
-
 `npm start`
 
-Cron job 
+For the first time running, Google will require you to allow access to Google Sheets.
+The program will open a Google authorization web page.
+Login and allow Google access to Google sheets.
+
+
+*Cron job* 
+crontab -e 
+7 * * * * node /home/ubuntu/project/gpt/dist/main.js
+to run on the 7th min every hour, every day
 
 
 ## Installation of Node.js on Windows 11
@@ -40,11 +47,22 @@ Playwright needs at least Node v16
 
 
 ## Installation of Node dependencies
-1. 
+1. Clone from git git@github.com:developerHobday/gpt.git
 
 2. `npm install`
 
 3. Install libraries for playwright  `npx playwright install-deps`
+
+4. Update passwords
+- config.yaml with GPT password
+- Google credentials.json
+
+5. Build `npm run build`
+
+
+## Configuration
+
+Configurations can be updated in config.yaml
 
 
 ## TroubleShooting
@@ -56,5 +74,11 @@ Restarting it (`npm start`) should resume the program
 * If ChatGPT doesn't log out
 Remove all browser data (`rm -rf context`)
 
-* If running in headful mode (browser showing),
-do not restore old tabs
+* do not restore old tabs if browser crashes
+
+* Getting 403 from chat.openai.com
+Copy in the context into the dist folder
+
+* ERROR PlaywrightCrawler: Request failed and reached maximum retries. requestHandler timed out after X seconds
+Increase maxRuntimeSeconds in config.yaml
+However, it should not be anywhere near 1 hour if it is regularly running on an hourly cron.

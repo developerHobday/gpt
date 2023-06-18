@@ -144,7 +144,7 @@ const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => 
     const lastResponse = page.locator('div.group.w-full div.markdown.prose').last()
 
     let finished = false
-    logger.debug('Waiting for prompt')
+    logger.debug('Waiting for prompt reply')
     while (!finished) {
         await page.waitForTimeout(config.responseWaitDelay);
         const responseClass = await lastResponse.getAttribute('class')
@@ -178,7 +178,7 @@ const promptChat = async (page: Page, promptObj: PromptObj): Promise<string> => 
     // await page.pause()
 }
 
-router.addDefaultHandler(async ({ enqueueLinks, page, log }) => {
+router.addDefaultHandler(async ({ page }) => {
     logger.info(`default handler`);
     await loginIfNecessary(page)
     await handleFirstTimeIfNecessary(page)
@@ -198,7 +198,7 @@ router.addDefaultHandler(async ({ enqueueLinks, page, log }) => {
         // TODO option to get output from previous
 
         numInputWords += getNumWordsInPrompt(promptObj)
-        logger.debug(`number of words input: ${numInputWords}`)
+        logger.debug(`Prompting with number of words input: ${numInputWords}`)
         
         promptObj.output = await promptChat(page, promptObj)
         await updatePrompt(`E${promptObj.row}`, promptObj.output)
